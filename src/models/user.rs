@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 pub struct UserProfile {
     pub id: i64,
     pub username: String,
-    pub password: String,
+    pub password_hash: String,
     pub created_at: DateTime<Utc>,
 }
 

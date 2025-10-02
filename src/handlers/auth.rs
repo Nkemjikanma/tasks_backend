@@ -22,7 +22,6 @@ pub fn protected_auth_routes() -> Router<PgPool> {
     Router::new().route("/logout", post(logout_handler))
 }
 
-#[axum::debug_handler]
 #[instrument(skip(pool, payload))]
 pub async fn sign_up_handler(
     State(pool): State<PgPool>,
@@ -37,7 +36,6 @@ pub async fn sign_up_handler(
     Ok(APIResponse::success(user_id))
 }
 
-#[axum::debug_handler]
 async fn login_handler(
     State(_pool): State<PgPool>,
     Json(_payload): Json<user::SignupAndLoginPayload>,

@@ -27,7 +27,7 @@ impl Config {
                 url: std::env::var("DATABASE_URL").expect("Database URL must be set in .env"),
                 max_connections: 5,
                 min_connections: 1,
-                connection_timeout: Duration::from_secs(20),
+                connection_timeout: Duration::from_secs(200),
                 idle_timeout: Duration::from_secs(300),
             },
             server: ServerConfig {

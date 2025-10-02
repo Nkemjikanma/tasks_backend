@@ -14,20 +14,19 @@ impl UserService {
         tracing::info!("Creating user: {}", request.username);
 
         // check for existing username
-        let user_exists: bool = sqlx::query_scalar(
-            "SELECT EXISTS(SELECT 1 FROM users WHERE username = $1 AND deleted_at IS NULL)",
-        )
-        .bind(&request.username)
-        .fetch_one(pool)
-        .await
-        .map_err(|e| {
-            tracing::error!(
-                "Database error checking username existence '{}': {:?}",
-                request.username,
-                e
-            );
-            AppError::DatabaseQueryFailed
-        })?;
+        let user_exists: bool =
+            sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM users WHERE username = $1)")
+                .bind(&request.username)
+                .fetch_one(pool)
+                .await
+                .map_err(|e| {
+                    tracing::error!(
+                        "Database error checking username existence '{}': {:?}",
+                        request.username,
+                        e
+                    );
+                    AppError::DatabaseQueryFailed
+                })?;
 
         if user_exists {
             return Err(AppError::UserAlreadyExists);
@@ -44,7 +43,7 @@ impl UserService {
         // insert user and hashed password into DB
         // Create user
         let new_user_id = sqlx::query_scalar::<_, i64>(
-            "INSERT INTO users (username, password, created_at)
+            "INSERT INTO users (username, password_hash, created_at)
              VALUES ($1, $2, $3)
              RETURNING id",
         )

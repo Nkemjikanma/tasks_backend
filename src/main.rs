@@ -46,8 +46,8 @@ pub async fn start_server(config: Config) -> Result<(), Box<dyn std::error::Erro
 
     tracing::info!("Setting up routes");
 
-    let protected_api = Router::new().nest("/auth", protected_auth_routes());
-    let public_api = Router::new().nest("/auth", public_auth_routes());
+    let protected_api = Router::new().merge(protected_auth_routes());
+    let public_api = Router::new().merge(public_auth_routes());
 
     let app = Router::new()
         .route("/", get(root))
