@@ -16,6 +16,12 @@ pub enum AppError {
 
     #[error("Database query failed")]
     DatabaseQueryFailed,
+
+    #[error("Invalid login credentials")]
+    InvalidUserCredentials,
+
+    #[error("JWT creation failed")]
+    JWTCreationFailed,
 }
 
 impl IntoResponse for AppError {
@@ -30,6 +36,8 @@ impl IntoResponse for AppError {
             Self::DatabaseQueryFailed => {
                 (StatusCode::INTERNAL_SERVER_ERROR, "Database query failed")
             }
+            Self::InvalidUserCredentials => (StatusCode::UNAUTHORIZED, "Invalid password"),
+            Self::JWTCreationFailed => (StatusCode::INTERNAL_SERVER_ERROR, "JWT creation failed"),
         };
 
         let body = Json(serde_json::json!({
