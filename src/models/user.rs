@@ -17,3 +17,17 @@ pub struct SignupAndLoginPayload {
     pub username: String,
     pub password: String,
 }
+
+#[derive(sqlx::FromRow, Debug, Clone, Serialize, Deserialize)]
+pub struct DBUserQuery {
+    pub id: i64,
+    pub username: String,
+    pub password_hash: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LoginResponse {
+    pub token: String,
+    pub user_id: i64,
+    pub username: String,
+}

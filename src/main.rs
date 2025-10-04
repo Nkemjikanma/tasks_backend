@@ -6,10 +6,12 @@ mod models;
 mod services;
 
 use crate::{
-    config::Config,
+    config::{Config, JWTConfig},
     database::connection::create_pool,
     handlers::auth::{protected_auth_routes, public_auth_routes},
 };
+use serde::{Deserialize, Serialize};
+use sqlx::PgPool;
 use tower_http::cors::CorsLayer;
 
 use axum::{
@@ -22,6 +24,12 @@ use axum::{
 };
 
 use std::net::SocketAddr;
+
+#[derive(Debug, Clone)]
+pub struct AppState {
+    pub pool: PgPool,
+    pub jwt_config: JWTConfig,
+}
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -39,6 +47,11 @@ pub async fn start_server(config: Config) -> Result<(), Box<dyn std::error::Erro
     tracing::info!("Initializing db connection");
     let pool = create_pool(config.database).await?;
 
+    let app_state = AppState {
+        pool,
+        jwt_config: config.jwt_config,
+    };
+
     let cors_layer = CorsLayer::new()
         .allow_origin("*".parse::<HeaderValue>().unwrap())
         .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE])
@@ -53,7 +66,7 @@ pub async fn start_server(config: Config) -> Result<(), Box<dyn std::error::Erro
         .route("/", get(root))
         .nest("/api", public_api.merge(protected_api))
         .layer(cors_layer)
-        .with_state(pool) // new way of sharing state
+        .with_state(app_state) // new way of sharing state
         .into_make_service_with_connect_info::<SocketAddr>();
 
     let server_address = format!("{}:{}", config.server.host, config.server.port);
