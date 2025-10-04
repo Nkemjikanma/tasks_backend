@@ -6,10 +6,10 @@ use chrono::{Duration, Utc};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Claims {
-    user_id: i64,
-    username: String,
-    exp: usize,
-    iat: usize,
+    pub user_id: i64,
+    pub username: String,
+    pub exp: usize,
+    pub iat: usize,
 }
 
 pub fn generate_token(

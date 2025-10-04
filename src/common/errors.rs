@@ -22,6 +22,15 @@ pub enum AppError {
 
     #[error("JWT creation failed")]
     JWTCreationFailed,
+
+    #[error("Error fetching tasks")]
+    ErrorFetchingTasks,
+
+    #[error("Unauthorized")]
+    Unauthorized,
+
+    #[error("Invalid Token")]
+    InvalidToken,
 }
 
 impl IntoResponse for AppError {
@@ -38,6 +47,12 @@ impl IntoResponse for AppError {
             }
             Self::InvalidUserCredentials => (StatusCode::UNAUTHORIZED, "Invalid password"),
             Self::JWTCreationFailed => (StatusCode::INTERNAL_SERVER_ERROR, "JWT creation failed"),
+            Self::ErrorFetchingTasks => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Error getching all user tasks",
+            ),
+            Self::Unauthorized => (StatusCode::UNAUTHORIZED, "Unauthorized to access"),
+            Self::InvalidToken => (StatusCode::UNAUTHORIZED, "Invalid token"),
         };
 
         let body = Json(serde_json::json!({

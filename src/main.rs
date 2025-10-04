@@ -2,13 +2,17 @@ mod common;
 mod config;
 mod database;
 mod handlers;
+mod middleware;
 mod models;
 mod services;
 
 use crate::{
     config::{Config, JWTConfig},
     database::connection::create_pool,
-    handlers::auth::{protected_auth_routes, public_auth_routes},
+    handlers::{
+        auth::{protected_auth_routes, public_auth_routes},
+        tasks::tasks_route,
+    },
 };
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
@@ -16,10 +20,13 @@ use tower_http::cors::CorsLayer;
 
 use axum::{
     Router,
+    extract::Request,
     http::{
-        HeaderValue, Method,
+        HeaderValue, Method, StatusCode,
         header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE, ORIGIN},
     },
+    middleware::{self, Next},
+    response::{IntoResponse, Response},
     routing::{get, post},
 };
 
@@ -59,7 +66,11 @@ pub async fn start_server(config: Config) -> Result<(), Box<dyn std::error::Erro
 
     tracing::info!("Setting up routes");
 
-    let protected_api = Router::new().merge(protected_auth_routes());
+    let protected_api = Router::new()
+        .merge(protected_auth_routes())
+        .merge(tasks_route())
+        .route_layer(middleware::from_fn());
+
     let public_api = Router::new().merge(public_auth_routes());
 
     let app = Router::new()
