@@ -1,14 +1,8 @@
 use axum::{
-    Router,
-    extract::{FromRequestParts, Request, State},
-    http::{
-        HeaderValue, Method, StatusCode,
-        header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE, ORIGIN},
-        request::Parts,
-    },
-    middleware::{self, Next},
-    response::{IntoResponse, Response},
-    routing::{get, post},
+    extract::{Request, State},
+    http::header::AUTHORIZATION,
+    middleware::Next,
+    response::Response,
 };
 
 use serde::{Deserialize, Serialize};
@@ -17,6 +11,7 @@ use crate::AppState;
 use crate::common::{errors::AppError, jwt};
 
 use sqlx::PgPool;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AuthenticatedUser {
     pub user_id: i64,
@@ -29,24 +24,24 @@ impl AuthenticatedUser {
     }
 }
 
-impl<S> FromRequestParts<S> for AuthenticatedUser
-where
-    S: Send + Sync,
-{
-    type Rejection = AppError;
-
-    fn from_request_parts(
-        parts: &mut Parts,
-        state: &S,
-    ) -> impl std::future::Future<Output = Result<Self, Self::Rejection>> + Send {
-        async move {
-            parts.extensions.get::<AuthenticatedUser>().cloned().ok_or_else(|| {
-                tracing::error!("Authenticated user not found - missing middleware or user not authenticated"); 
-                AppError::InvalidToken
-            })
-        }
-    }
-}
+// impl<S> FromRequestParts<S> for AuthenticatedUser
+// where
+//     S: Send + Sync,
+// {
+//     type Rejection = AppError;
+//
+//     fn from_request_parts(
+//         parts: &mut Parts,
+//         state: &S,
+//     ) -> impl std::future::Future<Output = Result<Self, Self::Rejection>> + Send {
+//         async move {
+//             parts.extensions.get::<AuthenticatedUser>().cloned().ok_or_else(|| {
+//                 tracing::error!("Authenticated user not found - missing middleware or user not authenticated");
+//                 AppError::InvalidToken
+//             })
+//         }
+//     }
+// }
 
 pub async fn middleware_auth(
     State(app_state): State<AppState>,
@@ -61,7 +56,7 @@ pub async fn middleware_auth(
         .and_then(|s| s.strip_prefix("Bearer "))
         .ok_or_else(|| {
             tracing::error!("Missing/invalid auth header for {}", parts.uri.path());
-            AppError::Unauthorized
+            AppError::InvalidToken
         })?;
 
     // Verify jwt and extract claims
@@ -82,7 +77,6 @@ pub async fn middleware_auth(
     let authenticated_user = AuthenticatedUser::new(claims.username.clone(), claims.user_id);
 
     parts.extensions.insert(authenticated_user);
-    parts.extensions.insert(app_state.pool);
 
     let req = Request::from_parts(parts, body);
 

@@ -1,5 +1,5 @@
 use axum::{
-    Json, Router,
+    Extension, Json, Router,
     extract::{Path, Query, State},
     routing::{delete, get, patch, post},
 };
@@ -7,6 +7,7 @@ use axum::{
 use crate::{
     AppState,
     common::api::{APIResponse, AppResponse},
+    middleware::AuthenticatedUser,
     models::task,
     services::task::TaskServices,
 };
@@ -20,12 +21,12 @@ pub fn tasks_route() -> Router<AppState> {
 
 pub async fn get_user_tasks(
     State(app_state): State<AppState>,
-    Path(user_id): Path<i64>,
+    Extension(user): Extension<AuthenticatedUser>,
 ) -> AppResponse<Vec<task::Task>> {
-    tracing::info!("Creating task for user: {:?}", user_id);
+    tracing::info!("Creating task for user: {:?}", user.username);
 
-    match TaskServices::get_tasks(&app_state, user_id).await {
-        Ok(response) => return Ok(APIResponse::success(response)),
+    match TaskServices::get_tasks(&app_state, user.user_id).await {
+        Ok(response) => Ok(APIResponse::success(response)),
         Err(err) => Err(err),
     }
 }

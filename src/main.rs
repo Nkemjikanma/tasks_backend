@@ -13,6 +13,7 @@ use crate::{
         auth::{protected_auth_routes, public_auth_routes},
         tasks::tasks_route,
     },
+    middleware::middleware_auth,
 };
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
@@ -25,7 +26,7 @@ use axum::{
         HeaderValue, Method, StatusCode,
         header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE, ORIGIN},
     },
-    middleware::{self, Next},
+    middleware as axum_middleware,
     response::{IntoResponse, Response},
     routing::{get, post},
 };
@@ -69,7 +70,10 @@ pub async fn start_server(config: Config) -> Result<(), Box<dyn std::error::Erro
     let protected_api = Router::new()
         .merge(protected_auth_routes())
         .merge(tasks_route())
-        .route_layer(middleware::from_fn());
+        .route_layer(axum_middleware::from_fn_with_state(
+            app_state.clone(),
+            middleware_auth,
+        ));
 
     let public_api = Router::new().merge(public_auth_routes());
 
