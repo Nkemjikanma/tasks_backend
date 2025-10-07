@@ -19,4 +19,8 @@ tokio = { version = "1.47.1", features = ["full"] }
 tower-http = { version = "0.6.6", features = ["cors", "fs", "trace"] }
 tracing = "0.1.41"
 tracing-subscriber = "0.3.20"
-uuid = "1.18.1"
+uuid = { version = "1.18.1", features = [
+    "v4", "serde"
+] }
+[target.aarch64-apple-darwin]
+rustflags = ["C", "link-arg=-fuse-ld=/opt/homebrew/opt/llvm/bin/ld64.lld"]

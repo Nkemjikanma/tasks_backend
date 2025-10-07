@@ -1,7 +1,9 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use std::fmt;
 
 use ::sqlx::{FromRow, Type};
+use uuid::Uuid;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreateTaskPayload {
@@ -29,9 +31,19 @@ pub enum TaskStatus {
     Done,
 }
 
-#[derive(Debug, Serialize, Deserialize, FromRow)]
+impl fmt::Display for TaskStatus {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            TaskStatus::Pending => write!(f, "pending"),
+            TaskStatus::InProgress => write!(f, "in_progress"),
+            TaskStatus::Done => write!(f, "done"),
+        }
+    }
+}
+
+#[derive(Debug, FromRow, Serialize, Deserialize)]
 pub struct Task {
-    pub id: i64,
+    pub id: Uuid,
     pub title: String,
     pub description: Option<String>,
     pub status: String,
@@ -41,5 +53,10 @@ pub struct Task {
     pub updated_at: DateTime<Utc>,
 }
 
-// #[derive(debug, serialize, deserialize, fromrow)]
-// pub struct TasksResponse {}
+#[derive(FromRow, Debug, Serialize, Deserialize)]
+pub struct TasksResponse {
+    pub title: String,
+    pub description: Option<String>,
+    pub status: String,
+    pub due_date: DateTime<Utc>,
+}

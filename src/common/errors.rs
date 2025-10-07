@@ -31,6 +31,9 @@ pub enum AppError {
 
     #[error("Invalid Token")]
     InvalidToken,
+
+    #[error("Task creation failed")]
+    TaskCreationFailed,
 }
 
 impl IntoResponse for AppError {
@@ -52,6 +55,7 @@ impl IntoResponse for AppError {
                 "Error getching all user tasks",
             ),
             Self::Unauthorized => (StatusCode::UNAUTHORIZED, "Unauthorized to access"),
+            Self::TaskCreationFailed => (StatusCode::FORBIDDEN, "Failed to create task"),
             Self::InvalidToken => (StatusCode::UNAUTHORIZED, "Invalid token"),
         };
 

@@ -24,25 +24,6 @@ impl AuthenticatedUser {
     }
 }
 
-// impl<S> FromRequestParts<S> for AuthenticatedUser
-// where
-//     S: Send + Sync,
-// {
-//     type Rejection = AppError;
-//
-//     fn from_request_parts(
-//         parts: &mut Parts,
-//         state: &S,
-//     ) -> impl std::future::Future<Output = Result<Self, Self::Rejection>> + Send {
-//         async move {
-//             parts.extensions.get::<AuthenticatedUser>().cloned().ok_or_else(|| {
-//                 tracing::error!("Authenticated user not found - missing middleware or user not authenticated");
-//                 AppError::InvalidToken
-//             })
-//         }
-//     }
-// }
-
 pub async fn middleware_auth(
     State(app_state): State<AppState>,
     req: Request,

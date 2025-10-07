@@ -23,13 +23,24 @@ pub async fn get_user_tasks(
     State(app_state): State<AppState>,
     Extension(user): Extension<AuthenticatedUser>,
 ) -> AppResponse<Vec<task::Task>> {
-    tracing::info!("Creating task for user: {:?}", user.username);
+    tracing::info!("getting all tasks for user: {:?}", user.username);
 
     match TaskServices::get_tasks(&app_state, user.user_id).await {
         Ok(response) => Ok(APIResponse::success(response)),
         Err(err) => Err(err),
     }
 }
-pub async fn create_task() {}
+pub async fn create_task(
+    State(app_state): State<AppState>,
+    Extension(user): Extension<AuthenticatedUser>,
+    Json(task): Json<task::CreateTaskPayload>,
+) -> AppResponse<task::TasksResponse> {
+    tracing::info!("creating task for user: {:?}", user.username);
+
+    match TaskServices::create_task(&app_state, user.user_id, Json(task)).await {
+        Ok(response) => (Ok(APIResponse::success(response))),
+        Err(err) => Err(err),
+    }
+}
 pub async fn update_task() {}
 pub async fn delete_task() {}
