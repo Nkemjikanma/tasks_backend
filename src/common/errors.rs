@@ -34,6 +34,12 @@ pub enum AppError {
 
     #[error("Task creation failed")]
     TaskCreationFailed,
+
+    #[error("Task not found")]
+    TaskNotFound,
+
+    #[error("Error updating task")]
+    ErrorUpdatingTask,
 }
 
 impl IntoResponse for AppError {
@@ -56,7 +62,9 @@ impl IntoResponse for AppError {
             ),
             Self::Unauthorized => (StatusCode::UNAUTHORIZED, "Unauthorized to access"),
             Self::TaskCreationFailed => (StatusCode::FORBIDDEN, "Failed to create task"),
+            Self::TaskNotFound => (StatusCode::FORBIDDEN, "Task not found"),
             Self::InvalidToken => (StatusCode::UNAUTHORIZED, "Invalid token"),
+            Self::ErrorUpdatingTask => (StatusCode::FORBIDDEN, "Error updating task"),
         };
 
         let body = Json(serde_json::json!({

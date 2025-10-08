@@ -4,6 +4,8 @@ use axum::{
     routing::{delete, get, patch, post},
 };
 
+use uuid::Uuid;
+
 use crate::{
     AppState,
     common::api::{APIResponse, AppResponse},
@@ -38,9 +40,21 @@ pub async fn create_task(
     tracing::info!("creating task for user: {:?}", user.username);
 
     match TaskServices::create_task(&app_state, user.user_id, Json(task)).await {
-        Ok(response) => (Ok(APIResponse::success(response))),
+        Ok(response) => Ok(APIResponse::success(response)),
         Err(err) => Err(err),
     }
 }
-pub async fn update_task() {}
+pub async fn update_task(
+    State(app_state): State<AppState>,
+    Extension(user): Extension<AuthenticatedUser>,
+    Path(task_id): Path<Uuid>,
+    Json(update_fields): Json<task::UpdateTaskPayload>,
+) -> AppResponse<task::TasksResponse> {
+    tracing::info!("Edditing task {}", user.username);
+
+    match TaskServices::update(&app_state, user.user_id, update_fields, task_id).await {
+        Ok(response) => Ok(APIResponse::success(response)),
+        Err(err) => Err(err),
+    }
+}
 pub async fn delete_task() {}

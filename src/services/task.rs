@@ -1,10 +1,55 @@
-pub struct TaskServices;
 use crate::{AppState, common::errors::AppError, models::task};
 use axum::Json;
 
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
+
+pub struct TaskServices;
+
 impl TaskServices {
+    pub async fn update(
+        app_state: &AppState,
+        user_id: i64,
+        update_fields: task::UpdateTaskPayload,
+        task_id: Uuid,
+    ) -> Result<task::TasksResponse, AppError> {
+        tracing::info!("Editing fileds now");
+
+        let old_task = sqlx::query_as!(task::Task, r#"SELECT * FROM tasks WHERE id = $1"#, task_id)
+            .fetch_one(&app_state.pool)
+            .await
+            .map_err(|e| {
+                tracing::error!("Task not found");
+                AppError::TaskNotFound
+            })?;
+
+        let updated_task = task::Task {
+            id: old_task.id,
+            title: update_fields.title.unwrap_or(old_task.title),
+            description: update_fields.description.or(old_task.description),
+            status: update_fields.status.unwrap_or(old_task.status),
+            due_date: update_fields.due_date.unwrap_or(old_task.due_date),
+            user_id,
+            created_at: old_task.created_at,
+            updated_at: Utc::now(),
+        };
+
+        let saved_task = sqlx::query_as!(task::TasksResponse, r#"UPDATE tasks SET title = $1, description = $2, status = $3, due_date = $4, updated_at = $5 WHERE id = $6 RETURNING title, description, status, due_date"#,updated_task.title,
+        updated_task.description,
+        updated_task.status,
+        updated_task.due_date,
+        updated_task.updated_at,
+        task_id )
+            .fetch_one(&app_state.pool)
+            .await
+            .map_err(|e| {
+  tracing::error!(error = ?e, "Failed to update task");
+        AppError::ErrorFetchingTasks
+            })?;
+
+        Ok(saved_task)
+    }
+
     pub async fn get_tasks(
         app_state: &AppState,
         user_id: i64,

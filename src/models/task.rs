@@ -18,7 +18,7 @@ pub struct UpdateTaskPayload {
     pub title: Option<String>,
     pub description: Option<String>,
     pub status: Option<String>,
-    pub due_date: DateTime<Utc>,
+    pub due_date: Option<DateTime<Utc>>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Type)]
