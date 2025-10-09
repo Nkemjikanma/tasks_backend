@@ -57,4 +57,13 @@ pub async fn update_task(
         Err(err) => Err(err),
     }
 }
-pub async fn delete_task() {}
+pub async fn delete_task(
+    State(app_state): State<AppState>,
+    Extension(user): Extension<AuthenticatedUser>,
+    Path(task_id): Path<Uuid>,
+) -> AppResponse<String> {
+    match TaskServices::delete_task(&app_state, task_id).await {
+        Ok(response) => Ok(APIResponse::success(response)),
+        Err(err) => Err(err),
+    }
+}

@@ -102,4 +102,23 @@ impl TaskServices {
 
         Ok(new_task)
     }
+
+    pub async fn delete_task(app_state: &AppState, task_id: Uuid) -> Result<String, AppError> {
+        tracing::info!("Deleteing task...");
+
+        let result = sqlx::query!("DELETE FROM tasks WHERE id = $1", task_id)
+            .execute(&app_state.pool)
+            .await
+            .map_err(|e| {
+                tracing::error!(error =?e, "Error deleting task");
+                AppError::ErrorDeletingTask
+            })?;
+
+        if result.rows_affected() == 0 {
+            tracing::warn!(%task_id, "NO task found to delete");
+            return Err(AppError::NotFound);
+        }
+
+        Ok("Sucess deleting task".to_string())
+    }
 }
